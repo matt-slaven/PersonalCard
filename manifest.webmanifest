@@ -1,0 +1,16 @@
+{
+  "name": "Matt Slaven — Tarjeta Personal",
+  "short_name": "Matt Slaven",
+  "description": "Compositor Audiovisual, Productor Musical e Ingeniero de Mezcla",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#161616",
+  "theme_color": "#161616",
+  "icons": [
+    {
+      "src": "./assets/slvn_logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

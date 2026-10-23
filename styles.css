@@ -1,0 +1,542 @@
+/* ==========================================================================
+   Matt Slaven — Tarjeta Personal Web (Pcard)
+   Tokens extraídos de detalles.txt y calibrados contra los bocetos originales
+   ========================================================================== */
+
+:root {
+  /* Paleta cromática (detalles.txt) */
+  --color-text: #e7e8ec;
+  --color-roles: #87b8e4;
+
+  /* Gradientes de sección */
+  --grad-grey-top: #22222a;
+  --grad-grey-bottom: #161616;
+  --grad-blue-top: #343961;
+  --grad-blue-bottom: #0f1520;
+
+  /* Marca de agua SLVN por sección */
+  --slvn-grey: #1f1f26;
+  --slvn-blue: #344372;
+
+  /* Familias tipográficas */
+  --font-header: 'Orbitron', sans-serif;
+  --font-roles: 'Archivo', sans-serif;
+  --font-details: 'Saira', sans-serif;
+  --font-qr: 'Saira Condensed', sans-serif;
+
+  /* Geometría Horizontal (base 1024x661 / 2048x1322 @2x) */
+  --split-x: 57.4219%;
+  --u: min(calc(100dvw / 1024), calc(100dvh / 661));
+
+  /* Geometría Vertical (base 360x800) */
+  --split-y: 54%;
+  --uv: min(calc(100dvw / 360), calc(100dvh / 800));
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  background-color: var(--grad-grey-bottom);
+  color: var(--color-text);
+  font-family: var(--font-details);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Definición SVG oculta */
+.svg-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Estructura Principal (Horizontal / Landscape por defecto)
+   ========================================================================== */
+
+.pcard {
+  position: relative;
+  width: 100dvw;
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: var(--split-x) calc(100% - var(--split-x));
+  grid-template-rows: 100%;
+  overflow: hidden;
+}
+
+.panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.panel--grey {
+  background: linear-gradient(180deg, var(--grad-grey-top) 0%, var(--grad-grey-bottom) 100%);
+  justify-content: flex-end;
+  /* Anclado a la costura vertical para mantener la relación exacta con el QR y el logo SLVN */
+  padding-right: calc(51 * var(--u));
+}
+
+.panel--blue {
+  background: linear-gradient(180deg, var(--grad-blue-top) 0%, var(--grad-blue-bottom) 100%);
+  justify-content: flex-start;
+  padding-left: calc(35 * var(--u));
+}
+
+/* ==========================================================================
+   Marca de Agua SLVN Bitono (Corte sincronizado con la costura)
+   ========================================================================== */
+
+.watermark-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.watermark-clip {
+  position: absolute;
+  inset: 0;
+}
+
+/* En horizontal, recorta a izquierda y derecha de --split-x */
+.watermark-clip--grey {
+  clip-path: inset(0 calc(100% - var(--split-x)) 0 0);
+  color: var(--slvn-grey);
+}
+
+.watermark-clip--blue {
+  clip-path: inset(0 0 0 var(--split-x));
+  color: var(--slvn-blue);
+}
+
+.watermark-svg {
+  position: absolute;
+  /* En el diseño horizontal original (1024x661), el emblema mide 668x164.2 y cruza la costura */
+  width: calc(668 * var(--u));
+  aspect-ratio: 505 / 124.1;
+  height: auto;
+  left: calc(var(--split-x) - 416 * var(--u));
+  top: calc(50% + 26.5 * var(--u));
+  display: block;
+}
+
+.watermark-clip--blue .watermark-svg {
+  /* Ajusta el contraste de #344372 sobre el gradiente azul oscuro como en la referencia */
+  opacity: 0.36;
+}
+
+/* Asegura que el contenido tipográfico y el QR queden por encima del emblema */
+.info-block,
+.qr-block {
+  position: relative;
+  z-index: 4;
+}
+
+/* ==========================================================================
+   Tipografía y Componentes — Bloque de Información
+   ========================================================================== */
+
+.info-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  /* Desplazamiento óptico sutil para coincidir con Y=221..448 en el lienzo 1024x661 */
+  transform: translateY(calc(4 * var(--u)));
+}
+
+.identity__name {
+  font-family: var(--font-header);
+  font-weight: 500;
+  /* 76px en lienzo 2x (38 * --u en 1x) */
+  font-size: clamp(1rem, calc(38 * var(--u)), 4.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.identity__roles {
+  list-style: none;
+  margin-top: calc(9 * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(3.5 * var(--u));
+}
+
+.identity__roles li {
+  font-family: var(--font-roles);
+  font-weight: 400;
+  font-stretch: 62.5%;
+  font-variation-settings: "wdth" 62.5;
+  /* 42px en lienzo 2x (21 * --u en 1x) */
+  font-size: clamp(0.65rem, calc(21 * var(--u)), 2.625rem);
+  line-height: 1.08;
+  letter-spacing: 0.015em;
+  color: var(--color-roles);
+  text-transform: uppercase;
+}
+
+.contact-list {
+  font-style: normal;
+  margin-top: calc(26 * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(13 * var(--u));
+}
+
+.contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(10 * var(--u));
+  color: var(--color-text);
+  text-decoration: none;
+  /* 32px en lienzo 2x (16 * --u en 1x) */
+  font-family: var(--font-details);
+  font-weight: 400;
+  font-size: clamp(0.55rem, calc(16 * var(--u)), 2rem);
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  transition: color 160ms ease, transform 160ms ease;
+  user-select: text;
+}
+
+.contact-item:hover,
+.contact-item:focus-visible {
+  color: var(--color-roles);
+  transform: translateX(2px);
+  outline: none;
+}
+
+.contact-item__icon {
+  width: calc(17.5 * var(--u));
+  height: calc(17.5 * var(--u));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-item__icon img {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: auto;
+  display: block;
+}
+
+/* ==========================================================================
+   Componente QR y Pie (linktr.ee/mattslaven)
+   ========================================================================== */
+
+.qr-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(calc(-3.5 * var(--u)));
+}
+
+.qr-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.qr-link:hover,
+.qr-link:focus-visible {
+  transform: scale(1.02);
+  outline: none;
+}
+
+.qr-link__img {
+  width: calc(153 * var(--u));
+  height: calc(153 * var(--u));
+  aspect-ratio: 1 / 1;
+  display: block;
+}
+
+.qr-link__caption {
+  margin-top: calc(15 * var(--u));
+  font-family: var(--font-qr);
+  font-weight: 400;
+  /* 37px en lienzo 2x (18.5 * --u en 1x) */
+  font-size: clamp(0.6rem, calc(18.5 * var(--u)), 2.3125rem);
+  line-height: 1;
+  letter-spacing: 0.015em;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+/* Oculto por defecto (solo se usa en la propuesta vertical V3) */
+.qr-footer-contacts {
+  display: none;
+}
+
+/* Variantes aplicadas en modo horizontal cuando se selecciona V2 (Sin teléfono) */
+body[data-variant="2"] .contact-item--phone {
+  display: none;
+}
+
+/* ==========================================================================
+   Diseño Vertical (Mobile Portrait — @media (orientation: portrait))
+   ========================================================================== */
+
+@media (orientation: portrait) {
+  .pcard {
+    grid-template-columns: 100%;
+    grid-template-rows: var(--split-y) calc(100% - var(--split-y));
+  }
+
+  .panel--grey {
+    justify-content: center;
+    align-items: flex-end;
+    padding-right: 0;
+    padding-inline: calc(24 * var(--uv));
+    padding-bottom: calc(34 * var(--uv));
+  }
+
+  .panel--blue {
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 0;
+    padding-inline: calc(24 * var(--uv));
+    padding-top: calc(44 * var(--uv));
+  }
+
+  /* En vertical, el emblema SLVN cruza la costura horizontal (--split-y) cambiando de #1F1F26 a #344372 */
+  .watermark-clip--grey {
+    clip-path: inset(0 0 calc(100% - var(--split-y)) 0);
+  }
+
+  .watermark-clip--blue {
+    clip-path: inset(var(--split-y) 0 0 0);
+  }
+
+  .watermark-svg {
+    width: calc(336 * var(--uv));
+    left: 50%;
+    top: calc(var(--split-y) - 4 * var(--uv));
+    transform: translate(-50%, -50%);
+  }
+
+  .watermark-clip--blue .watermark-svg {
+    /* En la parte alta del gradiente azul (#343961), #344372 al 95% mantiene el contraste exacto */
+    opacity: 0.95;
+  }
+
+  /* Bloque de información en Propuesta 1 (Default: Editorial Completa) */
+  .info-block {
+    transform: none;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .identity__name {
+    font-size: clamp(1.5rem, calc(35.5 * var(--uv)), 3.2rem);
+  }
+
+  .identity__roles {
+    margin-top: calc(10 * var(--uv));
+    gap: calc(4 * var(--uv));
+  }
+
+  .identity__roles li {
+    font-size: clamp(0.95rem, calc(20.5 * var(--uv)), 1.9rem);
+  }
+
+  .contact-list {
+    margin-top: calc(24 * var(--uv));
+    gap: calc(12 * var(--uv));
+  }
+
+  .contact-item {
+    gap: calc(10 * var(--uv));
+    font-size: clamp(0.8rem, calc(15.5 * var(--uv)), 1.45rem);
+  }
+
+  .contact-item__icon {
+    width: calc(17 * var(--uv));
+    height: calc(17 * var(--uv));
+  }
+
+  .qr-block {
+    transform: none;
+  }
+
+  .qr-link__img {
+    width: calc(160 * var(--uv));
+    height: calc(160 * var(--uv));
+  }
+
+  .qr-link__caption {
+    margin-top: calc(14 * var(--uv));
+    font-size: clamp(0.9rem, calc(19.2 * var(--uv)), 1.75rem);
+  }
+
+  /* ------------------------------------------------------------------------
+     Propuesta Vertical V2: Sin número de teléfono (Mayor aire y privacidad)
+     ------------------------------------------------------------------------ */
+  body[data-variant="2"] {
+    --split-y: 51%;
+  }
+
+  body[data-variant="2"] .panel--grey {
+    padding-bottom: calc(36 * var(--uv));
+  }
+
+  body[data-variant="2"] .panel--blue {
+    padding-top: calc(46 * var(--uv));
+  }
+
+  body[data-variant="2"] .contact-list {
+    margin-top: calc(24 * var(--uv));
+    gap: calc(13 * var(--uv));
+  }
+
+  body[data-variant="2"] .qr-link__img {
+    width: calc(166 * var(--uv));
+    height: calc(166 * var(--uv));
+  }
+
+  body[data-variant="2"] .qr-link__caption {
+    font-size: clamp(0.95rem, calc(19.8 * var(--uv)), 1.8rem);
+  }
+
+  /* ------------------------------------------------------------------------
+     Propuesta Vertical V3: Identidad centrada arriba + QR y Pie de contacto
+     (Evolución directa del boceto vertical original corrigiendo proporciones)
+     ------------------------------------------------------------------------ */
+  body[data-variant="3"] {
+    --split-y: 39%;
+  }
+
+  body[data-variant="3"] .panel--grey {
+    padding-bottom: calc(36 * var(--uv));
+  }
+
+  body[data-variant="3"] .panel--blue {
+    padding-top: calc(42 * var(--uv));
+  }
+
+  body[data-variant="3"] .info-block {
+    align-items: center;
+    text-align: center;
+  }
+
+  body[data-variant="3"] .identity__roles {
+    align-items: center;
+  }
+
+  body[data-variant="3"] .panel--grey .contact-list {
+    display: none;
+  }
+
+  body[data-variant="3"] .qr-block {
+    gap: calc(22 * var(--uv));
+  }
+
+  body[data-variant="3"] .qr-link__img {
+    width: calc(154 * var(--uv));
+    height: calc(154 * var(--uv));
+  }
+
+  body[data-variant="3"] .qr-footer-contacts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: calc(10 * var(--uv));
+    padding-top: calc(18 * var(--uv));
+    border-top: 1px solid rgba(231, 232, 236, 0.14);
+  }
+
+  body[data-variant="3"] .qr-footer-contacts .contact-item {
+    font-size: clamp(0.75rem, calc(14.5 * var(--uv)), 1.3rem);
+    gap: calc(9 * var(--uv));
+  }
+
+  body[data-variant="3"] .qr-footer-contacts .contact-item__icon {
+    width: calc(15.5 * var(--uv));
+    height: calc(15.5 * var(--uv));
+  }
+}
+
+/* ==========================================================================
+   Selector flotante de previsualización (Solo visible con ?preview=1)
+   ========================================================================== */
+
+.proposal-switcher:not([hidden]) {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: rgba(15, 21, 32, 0.88);
+  border: 1px solid rgba(135, 184, 228, 0.35);
+  font-family: var(--font-details);
+  font-size: 12px;
+  color: var(--color-text);
+  backdrop-filter: blur(8px);
+}
+
+.proposal-switcher__label {
+  padding-inline: 6px;
+  color: var(--color-roles);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.proposal-switcher button {
+  appearance: none;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text);
+  font-family: var(--font-details);
+  font-size: 11.5px;
+  padding: 4px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.proposal-switcher button:hover {
+  background: rgba(135, 184, 228, 0.16);
+}
+
+.proposal-switcher button.is-active {
+  background: var(--color-roles);
+  color: #0f1520;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
